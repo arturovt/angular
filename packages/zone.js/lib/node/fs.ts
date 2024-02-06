@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {patchMacroTask, zoneSymbol} from '../common/utils';
+import {patchMacroTask} from '../common/utils';
 
 Zone.__load_patch('fs', (global: any, Zone: ZoneType, api: _ZonePrivate) => {
   let fs: any;
@@ -22,9 +22,10 @@ Zone.__load_patch('fs', (global: any, Zone: ZoneType, api: _ZonePrivate) => {
   const TO_PATCH_MACROTASK_METHODS = [
     'access',  'appendFile', 'chmod',    'chown',    'close',     'exists',    'fchmod',
     'fchown',  'fdatasync',  'fstat',    'fsync',    'ftruncate', 'futimes',   'lchmod',
-    'lchown',  'link',       'lstat',    'mkdir',    'mkdtemp',   'open',      'read',
-    'readdir', 'readFile',   'readlink', 'realpath', 'rename',    'rmdir',     'stat',
-    'symlink', 'truncate',   'unlink',   'utimes',   'write',     'writeFile',
+    'lchown',  'lutimes',    'link',     'lstat',    'mkdir',     'mkdtemp',   'open',
+    'opendir', 'read',       'readdir',  'readFile', 'readlink',  'realpath',  'rename',
+    'rmdir',   'stat',       'symlink',  'truncate', 'unlink',    'utimes',    'write',
+    'writeFile',
   ];
 
   TO_PATCH_MACROTASK_METHODS.filter(name => !!fs[name] && typeof fs[name] === 'function')

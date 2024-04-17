@@ -123,6 +123,10 @@ export function retrieveHydrationInfoImpl(
   const dehydratedView: DehydratedView = {
     data,
     firstChild: rNode.firstChild ?? null,
+    // We set this field to `null` by default, thus avoiding the need to create empty `Map`s for
+    // relatively rare cases. Instead, we can create it lazily when we encounter an element that is
+    // hydration protected and has hydration-protected attributes set.
+    protectedNodes: null,
   };
 
   if (isRootView) {

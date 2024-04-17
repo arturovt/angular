@@ -6,34 +6,39 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {invalidSkipHydrationHost, validateMatchingNode, validateNodeExists} from '../../hydration/error_handling';
+import {invalidSkipHydrationHost, validateMatchingNode, validateNodeExists,} from '../../hydration/error_handling';
 import {locateNextRNode} from '../../hydration/node_lookup_utils';
-import {hasSkipHydrationAttrOnRElement, hasSkipHydrationAttrOnTNode} from '../../hydration/skip_hydration';
-import {getSerializedContainerViews, isDisconnectedNode, markRNodeAsClaimedByHydration, markRNodeAsSkippedByHydration, setSegmentHead} from '../../hydration/utils';
+import {hasSkipHydrationAttrOnRElement, hasSkipHydrationAttrOnTNode,} from '../../hydration/skip_hydration';
+import {getSerializedContainerViews, isDisconnectedNode, markRNodeAsClaimedByHydration, markRNodeAsSkippedByHydration, setSegmentHead,} from '../../hydration/utils';
 import {isDetachedByI18n} from '../../i18n/utils';
 import {assertDefined, assertEqual, assertIndexInRange} from '../../util/assert';
 import {assertFirstCreatePass, assertHasParent} from '../assert';
 import {attachPatchData} from '../context_discovery';
 import {registerPostOrderHooks} from '../hooks';
-import {hasClassInput, hasStyleInput, TAttributes, TElementNode, TNode, TNodeFlags, TNodeType} from '../interfaces/node';
+import {hasClassInput, hasStyleInput, TAttributes, TElementNode, TNode, TNodeFlags, TNodeType,} from '../interfaces/node';
 import {Renderer} from '../interfaces/renderer';
 import {RElement} from '../interfaces/renderer_dom';
 import {isComponentHost, isContentQueryHost, isDirectiveHost} from '../interfaces/type_checks';
 import {HEADER_OFFSET, HYDRATION, LView, RENDERER, TView} from '../interfaces/view';
 import {assertTNodeType} from '../node_assert';
-import {appendChild, clearElementContents, createElementNode, setupStaticAttributes} from '../node_manipulation';
-import {decreaseElementDepthCount, enterSkipHydrationBlock, getBindingIndex, getCurrentTNode, getElementDepthCount, getLView, getNamespace, getTView, increaseElementDepthCount, isCurrentTNodeParent, isInSkipHydrationBlock, isSkipHydrationRootTNode, lastNodeWasCreated, leaveSkipHydrationBlock, setCurrentTNode, setCurrentTNodeAsNotParent, wasLastNodeCreated} from '../state';
+import {appendChild, clearElementContents, createElementNode, setupStaticAttributes,} from '../node_manipulation';
+import {decreaseElementDepthCount, enterSkipHydrationBlock, getBindingIndex, getCurrentTNode, getElementDepthCount, getLView, getNamespace, getTView, increaseElementDepthCount, isCurrentTNodeParent, isInSkipHydrationBlock, isSkipHydrationRootTNode, lastNodeWasCreated, leaveSkipHydrationBlock, setCurrentTNode, setCurrentTNodeAsNotParent, wasLastNodeCreated,} from '../state';
 import {computeStaticStyling} from '../styling/static_styling';
+import {getHydrationProtectedAttrs} from '../util/attrs_utils_with_hydration_support';
 import {getConstant} from '../util/view_utils';
 
 import {validateElementIsKnown} from './element_validation';
 import {setDirectiveInputsWhichShadowsStyling} from './property';
-import {createDirectivesInstances, executeContentQueries, getOrCreateTNode, resolveDirectives, saveResolvedLocalsInData} from './shared';
-
+import {createDirectivesInstances, executeContentQueries, getOrCreateTNode, resolveDirectives, saveResolvedLocalsInData,} from './shared';
 
 function elementStartFirstCreatePass(
-    index: number, tView: TView, lView: LView, name: string, attrsIndex?: number|null,
-    localRefsIndex?: number): TElementNode {
+    index: number,
+    tView: TView,
+    lView: LView,
+    name: string,
+    attrsIndex?: number|null,
+    localRefsIndex?: number,
+    ): TElementNode {
   ngDevMode && assertFirstCreatePass(tView);
   ngDevMode && ngDevMode.firstCreatePass++;
 
@@ -74,22 +79,27 @@ function elementStartFirstCreatePass(
  * @codeGenApi
  */
 export function ɵɵelementStart(
-    index: number, name: string, attrsIndex?: number|null,
-    localRefsIndex?: number): typeof ɵɵelementStart {
+    index: number,
+    name: string,
+    attrsIndex?: number|null,
+    localRefsIndex?: number,
+    ): typeof ɵɵelementStart {
   const lView = getLView();
   const tView = getTView();
   const adjustedIndex = HEADER_OFFSET + index;
 
   ngDevMode &&
       assertEqual(
-          getBindingIndex(), tView.bindingStartIndex,
-          'elements should be created before any bindings');
+          getBindingIndex(),
+          tView.bindingStartIndex,
+          'elements should be created before any bindings',
+      );
   ngDevMode && assertIndexInRange(lView, adjustedIndex);
 
   const renderer = lView[RENDERER];
   const tNode = tView.firstCreatePass ?
       elementStartFirstCreatePass(adjustedIndex, tView, lView, name, attrsIndex, localRefsIndex) :
-      tView.data[adjustedIndex] as TElementNode;
+      (tView.data[adjustedIndex] as TElementNode);
 
   const native = _locateOrCreateElementNode(tView, lView, tNode, renderer, name, index);
   lView[adjustedIndex] = native;
@@ -101,7 +111,7 @@ export function ɵɵelementStart(
   }
 
   setCurrentTNode(tNode, true);
-  setupStaticAttributes(renderer, native, tNode);
+  setupStaticAttributes(lView, renderer, native, tNode);
 
   if (!isDetachedByI18n(tNode) && wasLastNodeCreated()) {
     // In the i18n case, the translation may have removed this element, so only add it if it is not
@@ -183,26 +193,40 @@ export function ɵɵelementEnd(): typeof ɵɵelementEnd {
  * @codeGenApi
  */
 export function ɵɵelement(
-    index: number, name: string, attrsIndex?: number|null,
-    localRefsIndex?: number): typeof ɵɵelement {
+    index: number,
+    name: string,
+    attrsIndex?: number|null,
+    localRefsIndex?: number,
+    ): typeof ɵɵelement {
   ɵɵelementStart(index, name, attrsIndex, localRefsIndex);
   ɵɵelementEnd();
   return ɵɵelement;
 }
 
-let _locateOrCreateElementNode: typeof locateOrCreateElementNodeImpl =
-    (tView: TView, lView: LView, tNode: TNode, renderer: Renderer, name: string, index: number) => {
-      lastNodeWasCreated(true);
-      return createElementNode(renderer, name, getNamespace());
-    };
+let _locateOrCreateElementNode: typeof locateOrCreateElementNodeImpl = (
+    tView: TView,
+    lView: LView,
+    tNode: TNode,
+    renderer: Renderer,
+    name: string,
+    index: number,
+    ) => {
+  lastNodeWasCreated(true);
+  return createElementNode(renderer, name, getNamespace());
+};
 
 /**
  * Enables hydration code path (to lookup existing elements in DOM)
  * in addition to the regular creation mode of element nodes.
  */
 function locateOrCreateElementNodeImpl(
-    tView: TView, lView: LView, tNode: TNode, renderer: Renderer, name: string,
-    index: number): RElement {
+    tView: TView,
+    lView: LView,
+    tNode: TNode,
+    renderer: Renderer,
+    name: string,
+    index: number,
+    ): RElement {
   const hydrationInfo = lView[HYDRATION];
   const isNodeCreationMode = !hydrationInfo || isInSkipHydrationBlock() ||
       isDetachedByI18n(tNode) || isDisconnectedNode(hydrationInfo, index);
@@ -217,6 +241,32 @@ function locateOrCreateElementNodeImpl(
   const native = locateNextRNode<RElement>(hydrationInfo, tView, lView, tNode)!;
   ngDevMode && validateMatchingNode(native, Node.ELEMENT_NODE, name, lView, tNode);
   ngDevMode && markRNodeAsClaimedByHydration(native);
+
+  const hydrationProtectedAttrs = getHydrationProtectedAttrs(native.tagName);
+  if (hydrationProtectedAttrs) {
+    // Currently, the DOM element (which is protected) is mapped to a single attribute, but the list
+    // of hydration-protected attributes may expand in the future if more cases arise.
+    for (const attrName of hydrationProtectedAttrs) {
+      const attrValue = native.getAttribute(attrName);
+      // Since this element is hydration protected (e.g., `<iframe />`), but for some reason, its
+      // `src` (or any other) attribute (which is also hydration protected) is not set, we may skip
+      // to the next attribute.
+      if (!attrValue) {
+        continue;
+      }
+
+      const protectedNodes =
+          (hydrationInfo.protectedNodes ??= new Map<number, Map<string, string>>());
+
+      // The DOM element may have multiple hydration-protected attributes; therefore, we need to
+      // have a map for them as well, where the key is the attribute name and the value is the
+      // attribute value.
+      const protectedAttrs = protectedNodes.get(tNode.index) ?? new Map<string, string>();
+      protectedAttrs.set(attrName, attrValue);
+
+      protectedNodes.set(tNode.index, protectedAttrs);
+    }
+  }
 
   // This element might also be an anchor of a view container.
   if (getSerializedContainerViews(hydrationInfo, index)) {
@@ -244,7 +294,6 @@ function locateOrCreateElementNodeImpl(
       clearElementContents(native);
 
       ngDevMode && markRNodeAsSkippedByHydration(native);
-
     } else if (ngDevMode) {
       // If this is not a component host, throw an error.
       // Hydration can be skipped on per-component basis only.

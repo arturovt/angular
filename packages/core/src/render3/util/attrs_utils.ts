@@ -6,13 +6,12 @@
  * found in the LICENSE file at https://angular.io/license
  */
 import {CharCode} from '../../util/char_code';
-import { AttributeMarker } from '../interfaces/attribute_marker';
+import {AttributeMarker} from '../interfaces/attribute_marker';
 import {TAttributes} from '../interfaces/node';
 import {CssSelector} from '../interfaces/projection';
 import {Renderer} from '../interfaces/renderer';
 import {RElement} from '../interfaces/renderer_dom';
-
-
+import {FLAGS, HYDRATION, LView, LViewFlags} from '../interfaces/view';
 
 /**
  * Assigns all attribute values to the provided element via the inferred renderer.
@@ -36,12 +35,20 @@ import {RElement} from '../interfaces/renderer_dom';
  * Note that this instruction does not support assigning style and class values to
  * an element. See `elementStart` and `elementHostAttrs` to learn how styling values
  * are applied to an element.
+ * @param lView The view to which the node belongs
+ * @param nodeIndex The node index
  * @param renderer The renderer to be used
  * @param native The element that the attributes will be assigned to
  * @param attrs The attribute array of values that will be assigned to the element
  * @returns the index value that was last accessed in the attributes array
  */
-export function setUpAttributes(renderer: Renderer, native: RElement, attrs: TAttributes): number {
+export function setUpAttributes(
+    lView: LView,
+    nodeIndex: number,
+    renderer: Renderer,
+    native: RElement,
+    attrs: TAttributes,
+    ): number {
   let i = 0;
   while (i < attrs.length) {
     const value = attrs[i];
@@ -70,7 +77,14 @@ export function setUpAttributes(renderer: Renderer, native: RElement, attrs: TAt
       if (isAnimationProp(attrName)) {
         renderer.setProperty(native, attrName, attrVal);
       } else {
-        renderer.setAttribute(native, attrName, attrVal as string);
+        _setAttributeWithHydrationSupport(
+            lView,
+            renderer,
+            nodeIndex,
+            native,
+            attrName,
+            attrVal as string,
+        );
       }
       i++;
     }
@@ -83,6 +97,43 @@ export function setUpAttributes(renderer: Renderer, native: RElement, attrs: TAt
   return i;
 }
 
+let _setAttributeWithHydrationSupport: typeof _setAttributeWithHydrationSupportImpl =
+    (lView: LView, renderer: Renderer, nodeIndex: number, element: RElement, attrName: string,
+     attrValue: string) => {
+      renderer.setAttribute(element, attrName, attrValue as string);
+    };
+
+function _setAttributeWithHydrationSupportImpl(
+    lView: LView,
+    renderer: Renderer,
+    nodeIndex: number,
+    element: RElement,
+    attrName: string,
+    attrValue: string,
+) {
+  // This checks whether:
+  // 1) we are in the process of creating/updating a view for the first time,
+  // 2) we have protected nodes on the hydration info
+  // 3) the attribute being set is hydration protected, and
+  // 4) we have a "protected" attribute on this node and whether the value is the same.
+  if (lView[FLAGS] & LViewFlags.FirstLViewPass &&
+      lView[HYDRATION]?.protectedNodes?.has(nodeIndex)) {
+    const protectedAttrs = lView[HYDRATION].protectedNodes.get(nodeIndex)!;
+    if (protectedAttrs.has(attrName) && protectedAttrs.get(attrName) === attrValue) {
+      // If the answers to the questions above are all "yes", then we exit. We do not want to reset
+      // the value since it may negatively affect performance and UX. For example, in the `<iframe
+      // src="...">` case, this would cause a reload within the iframe.
+      return;
+    }
+  }
+
+  renderer.setAttribute(element, attrName, attrValue);
+}
+
+export function enableSetAttributeWithHydrationSupportImpl() {
+  _setAttributeWithHydrationSupport = _setAttributeWithHydrationSupportImpl;
+}
+
 /**
  * Test whether the given value is a marker that indicates that the following
  * attribute values in a `TAttributes` array are only the names of attributes,
@@ -91,8 +142,9 @@ export function setUpAttributes(renderer: Renderer, native: RElement, attrs: TAt
  * @returns true if the marker is a "name-only" marker (e.g. `Bindings`, `Template` or `I18n`).
  */
 export function isNameOnlyAttributeMarker(marker: string|AttributeMarker|CssSelector) {
-  return marker === AttributeMarker.Bindings || marker === AttributeMarker.Template ||
-      marker === AttributeMarker.I18n;
+  return (
+      marker === AttributeMarker.Bindings || marker === AttributeMarker.Template ||
+      marker === AttributeMarker.I18n);
 }
 
 export function isAnimationProp(name: string): boolean {
@@ -110,7 +162,10 @@ export function isAnimationProp(name: string): boolean {
  * @param dst Location of where the merged `TAttributes` should end up.
  * @param src `TAttributes` which should be appended to `dst`
  */
-export function mergeHostAttrs(dst: TAttributes|null, src: TAttributes|null): TAttributes|null {
+export function mergeHostAttrs(
+    dst: TAttributes|null,
+    src: TAttributes|null,
+    ): TAttributes|null {
   if (src === null || src.length === 0) {
     // do nothing
   } else if (dst === null || dst.length === 0) {
@@ -150,8 +205,12 @@ export function mergeHostAttrs(dst: TAttributes|null, src: TAttributes|null): TA
  * @param value Value to add or to overwrite to `TAttributes` Only used if `marker` is not Class.
  */
 export function mergeHostAttribute(
-    dst: TAttributes, marker: AttributeMarker, key1: string, key2: string|null,
-    value: string|null): void {
+    dst: TAttributes,
+    marker: AttributeMarker,
+    key1: string,
+    key2: string|null,
+    value: string|null,
+    ): void {
   let i = 0;
   // Assume that new markers will be inserted at the end.
   let markerInsertPosition = dst.length;

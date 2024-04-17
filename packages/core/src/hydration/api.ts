@@ -19,6 +19,7 @@ import {enableApplyRootElementTransformImpl} from '../render3/instructions/share
 import {enableLocateOrCreateContainerAnchorImpl} from '../render3/instructions/template';
 import {enableLocateOrCreateTextNodeImpl} from '../render3/instructions/text';
 import {getDocument} from '../render3/interfaces/document';
+import {enableSetAttributeWithHydrationSupportImpl} from '../render3/util/attrs_utils';
 import {isPlatformBrowser} from '../render3/util/misc_utils';
 import {TransferState} from '../transfer_state';
 import {performanceMarkFeature} from '../util/performance';
@@ -74,6 +75,7 @@ function enableHydrationRuntimeSupport() {
     enableLocateOrCreateContainerRefImpl();
     enableFindMatchingDehydratedViewImpl();
     enableApplyRootElementTransformImpl();
+    enableSetAttributeWithHydrationSupportImpl();
   }
 }
 

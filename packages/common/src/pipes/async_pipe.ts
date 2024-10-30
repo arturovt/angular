@@ -60,7 +60,7 @@ class PromiseStrategy implements SubscriptionStrategy {
     });
   }
 
-  dispose(subscription: Promise<any>): void {}
+  dispose(subscription: Promise<any>): void {qqq}
 }
 
 const _promiseStrategy = new PromiseStrategy();

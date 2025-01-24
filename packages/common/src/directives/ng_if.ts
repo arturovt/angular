@@ -13,7 +13,10 @@ import {
   TemplateRef,
   ViewContainerRef,
   ɵstringify as stringify,
+  ɵRuntimeError as RuntimeError,
 } from '@angular/core';
+
+import {RuntimeErrorCode} from '../errors';
 
 /**
  * A structural directive that conditionally includes a template based on the value of
@@ -265,7 +268,11 @@ export class NgIfContext<T = unknown> {
 
 function assertTemplate(property: string, templateRef: TemplateRef<any> | null): void {
   const isTemplateRefOrNull = !!(!templateRef || templateRef.createEmbeddedView);
-  if (!isTemplateRefOrNull) {
-    throw new Error(`${property} must be a TemplateRef, but received '${stringify(templateRef)}'.`);
+  if (isTemplateRefOrNull) {
+    throw new RuntimeError(
+      RuntimeErrorCode.NG_IF_NOT_A_TEMPLATE_REF,
+      (typeof ngDevMode === 'undefined' || ngDevMode) &&
+        `${property} must be a TemplateRef, but received '${stringify(templateRef)}'.`,
+    );
   }
 }

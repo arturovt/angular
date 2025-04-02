@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {ɵisPromise as isPromise} from '@angular/core';
-import {from, isObservable, Observable, of} from 'rxjs';
+import {ɵisPromise as isPromise, ɵfromPromise as fromPromise} from '@angular/core';
+import {isObservable, Observable, of} from 'rxjs';
 
 export function shallowEqualArrays(a: any[], b: any[]): boolean {
   if (a.length !== b.length) return false;
@@ -75,7 +75,7 @@ export function wrapIntoObservable<T>(value: T | Promise<T> | Observable<T>): Ob
     // Use `Promise.resolve()` to wrap promise-like instances.
     // Required ie when a Resolver returns a AngularJS `$q` promise to correctly trigger the
     // change detection.
-    return from(Promise.resolve(value));
+    return fromPromise(Promise.resolve(value));
   }
 
   return of(value);

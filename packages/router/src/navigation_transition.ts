@@ -15,8 +15,9 @@ import {
   InjectionToken,
   runInInjectionContext,
   Type,
+  ɵfromPromise as fromPromise,
 } from '@angular/core';
-import {BehaviorSubject, combineLatest, EMPTY, from, Observable, of, Subject} from 'rxjs';
+import {BehaviorSubject, combineLatest, EMPTY, Observable, of, Subject} from 'rxjs';
 import {
   catchError,
   defaultIfEmpty,
@@ -731,7 +732,7 @@ export class NavigationTransitions {
             // If view transitions are enabled, block the navigation until the view
             // transition callback starts. Otherwise, continue immediately.
             return viewTransitionStarted
-              ? from(viewTransitionStarted).pipe(map(() => overallTransitionState))
+              ? fromPromise(viewTransitionStarted).pipe(map(() => overallTransitionState))
               : of(overallTransitionState);
           }),
 

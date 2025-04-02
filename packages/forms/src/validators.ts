@@ -11,8 +11,9 @@ import {
   ɵisPromise as isPromise,
   ɵisSubscribable as isSubscribable,
   ɵRuntimeError as RuntimeError,
+  ɵfromPromise as fromPromise,
 } from '@angular/core';
-import {forkJoin, from, Observable} from 'rxjs';
+import {forkJoin, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 
 import type {
@@ -603,7 +604,7 @@ function isPresent(o: any): boolean {
 }
 
 export function toObservable(value: any): Observable<any> {
-  const obs = isPromise(value) ? from(value) : value;
+  const obs = isPromise(value) ? fromPromise(value) : value;
   if ((typeof ngDevMode === 'undefined' || ngDevMode) && !isSubscribable(obs)) {
     let errorMessage = `Expected async validator to return Promise or Observable.`;
     // A synchronous validator will return object or null.

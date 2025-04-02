@@ -7,8 +7,12 @@
  */
 
 import {XhrFactory} from '../../index';
-import {Injectable, ɵRuntimeError as RuntimeError} from '@angular/core';
-import {from, Observable, Observer, of} from 'rxjs';
+import {
+  Injectable,
+  ɵRuntimeError as RuntimeError,
+  ɵfromPromise as fromPromise,
+} from '@angular/core';
+import {Observable, Observer, of} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
 
 import {HttpBackend} from './backend';
@@ -84,7 +88,7 @@ export class HttpXhrBackend implements HttpBackend {
     // class, which needs to load an XHR implementation.
     const xhrFactory: XhrFactory & {ɵloadImpl?: () => Promise<void>} = this.xhrFactory;
     const source: Observable<void | null> = xhrFactory.ɵloadImpl
-      ? from(xhrFactory.ɵloadImpl())
+      ? fromPromise(xhrFactory.ɵloadImpl())
       : of(null);
 
     return source.pipe(

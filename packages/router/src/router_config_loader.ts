@@ -15,8 +15,9 @@ import {
   Injector,
   NgModuleFactory,
   Type,
+  ɵfromPromise as fromPromise,
 } from '@angular/core';
-import {ConnectableObservable, from, Observable, of, Subject} from 'rxjs';
+import {ConnectableObservable, Observable, of, Subject} from 'rxjs';
 import {finalize, map, mergeMap, refCount, tap} from 'rxjs/operators';
 
 import {DefaultExport, LoadedRouterConfig, Route, Routes} from './models';
@@ -129,7 +130,7 @@ export function loadChildren(
       if (t instanceof NgModuleFactory || Array.isArray(t)) {
         return of(t);
       } else {
-        return from(compiler.compileModuleAsync(t));
+        return fromPromise(compiler.compileModuleAsync(t));
       }
     }),
     map((factoryOrRoutes: NgModuleFactory<any> | Routes) => {

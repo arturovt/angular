@@ -20,16 +20,14 @@ export function eventTargetPatch(_global: any, api: _ZonePrivate) {
     const trueEventName = eventName + TRUE_STR;
     const symbol = ZONE_SYMBOL_PREFIX + falseEventName;
     const symbolCapture = ZONE_SYMBOL_PREFIX + trueEventName;
-    zoneSymbolEventNames[eventName] = {};
-    zoneSymbolEventNames[eventName][FALSE_STR] = symbol;
-    zoneSymbolEventNames[eventName][TRUE_STR] = symbolCapture;
+    zoneSymbolEventNames[eventName] = {[FALSE_STR]: symbol, [TRUE_STR]: symbolCapture};
   }
 
   const EVENT_TARGET = _global['EventTarget'];
   if (!EVENT_TARGET || !EVENT_TARGET.prototype) {
     return;
   }
-  api.patchEventTarget(_global, api, [EVENT_TARGET && EVENT_TARGET.prototype]);
+  api.patchEventTarget(_global, api, [EVENT_TARGET.prototype]);
 
   return true;
 }

@@ -12,6 +12,11 @@ import type {Injector} from './injector';
 import {THROW_IF_NOT_FOUND} from './injector_compatibility';
 
 export class NullInjector implements Injector {
+  get destroyed(): boolean {
+    // `NullInjector` is never in a destroyed state?
+    return false;
+  }
+
   get(token: any, notFoundValue: any = THROW_IF_NOT_FOUND): any {
     if (notFoundValue === THROW_IF_NOT_FOUND) {
       const error = new NotFoundError(`NullInjectorError: No provider for ${stringify(token)}!`);

@@ -45,6 +45,11 @@ export abstract class Injector {
   static NULL: Injector = /* @__PURE__ */ new NullInjector();
 
   /**
+   * Indicates whether the instance has already been destroyed.
+   */
+  abstract get destroyed(): boolean;
+
+  /**
    * Retrieves an instance from the injector based on the provided token.
    * @returns The instance from the injector if defined, otherwise the `notFoundValue`.
    * @throws When the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.

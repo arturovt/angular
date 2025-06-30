@@ -21,6 +21,10 @@ export class ChainedInjector implements Injector {
     public parentInjector: Injector,
   ) {}
 
+  get destroyed(): boolean {
+    return this.injector.destroyed;
+  }
+
   get<T>(token: ProviderToken<T>, notFoundValue?: T, options?: InjectOptions): T {
     const value = this.injector.get<T | typeof NOT_FOUND_CHECK_ONLY_ELEMENT_INJECTOR>(
       token,

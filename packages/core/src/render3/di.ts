@@ -47,7 +47,7 @@ import {
   TNodeProviderIndexes,
   TNodeType,
 } from './interfaces/node';
-import {isComponentDef, isComponentHost, isRootView} from './interfaces/type_checks';
+import {isComponentDef, isComponentHost, isDestroyed, isRootView} from './interfaces/type_checks';
 import {
   DECLARATION_COMPONENT_VIEW,
   DECLARATION_VIEW,
@@ -878,6 +878,10 @@ export class NodeInjector implements Injector {
     private _tNode: TElementNode | TContainerNode | TElementContainerNode | null,
     private _lView: LView,
   ) {}
+
+  get destroyed(): boolean {
+    return isDestroyed(this._lView);
+  }
 
   get(token: any, notFoundValue?: any, flags?: InternalInjectFlags | InjectOptions): any {
     return getOrCreateInjectable(

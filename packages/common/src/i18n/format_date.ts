@@ -942,16 +942,54 @@ export function toDate(value: string | number | Date): Date {
     if ((match = value.match(ISO8601_DATE_REGEX))) {
       return isoStringToDate(match);
     }
+
+    // The string did not match any supported format. Fall back to new Date()
+    // for backwards compatibility, but warn in dev mode so applications can
+    // migrate to an explicit ISO 8601 format before this fallback is removed.
+    //
+    // The fallback is unsafe for three reasons:
+    //
+    // 1. Platform inconsistency — 'January 15, 2024' parses in V8 but returns
+    //    Invalid Date in other engines, causing SSR hydration mismatches when
+    //    the server and browser parse the same string differently.
+    //
+    // 2. Timezone ambiguity — 'Jan 15 2024' is treated as LOCAL time in some
+    //    engines and UTC in others. A date that appears correct in one timezone
+    //    may be silently shifted by hours or days in another, which can cause
+    //    incorrect results if the date is used in access-control logic.
+    //
+    // 3. Unintended acceptance — engines may silently accept crafted strings
+    //    that produce surprising but technically valid Date objects, bypassing
+    //    upstream validation that assumes only ISO 8601 is supported.
+    if (ngDevMode) {
+      // `console.error` instead of `throw` to avoid any breaking changes.
+      console.error(
+        formatRuntimeError(
+          RuntimeErrorCode.INVALID_TO_DATE_CONVERSION,
+          `toDate() received an unrecognized string date value "${value}". ` +
+            `Passing arbitrary date strings is deprecated and will throw in a future ` +
+            `major version of Angular. ` +
+            `Please use an ISO 8601 date string, a numeric timestamp, or a Date object instead.`,
+        ),
+      );
+    }
+
+    const date = new Date(value as any);
+    if (!isDate(date)) {
+      throw new RuntimeError(
+        RuntimeErrorCode.INVALID_TO_DATE_CONVERSION,
+        ngDevMode && `Unable to convert "${value}" into a date`,
+      );
+    }
+    return date;
   }
 
-  const date = new Date(value as any);
-  if (!isDate(date)) {
-    throw new RuntimeError(
-      RuntimeErrorCode.INVALID_TO_DATE_CONVERSION,
-      ngDevMode && `Unable to convert "${value}" into a date`,
-    );
-  }
-  return date;
+  throw new RuntimeError(
+    RuntimeErrorCode.INVALID_TO_DATE_CONVERSION,
+    ngDevMode &&
+      `Unable to convert "${value}" into a date. ` +
+        `Expected an ISO 8601 string, a numeric timestamp, or a Date object.`,
+  );
 }
 
 /**

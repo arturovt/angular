@@ -32,6 +32,7 @@ import {
   resetImagePriorityCount,
 } from '../../src/directives/ng_optimized_image/ng_optimized_image';
 import {PRECONNECT_CHECK_BLOCKLIST} from '../../src/directives/ng_optimized_image/preconnect_link_checker';
+import {escapeCssUrl} from '../../src/directives/ng_optimized_image/url';
 
 describe('Image directive', () => {
   const PLACEHOLDER_BLUR_AMOUNT = 15;
@@ -2613,6 +2614,46 @@ describe('Image directive', () => {
         expect(img.getAttribute('srcset')).toBeNull();
       });
     });
+  });
+});
+
+describe('escapeCssUrl', () => {
+  it('escapes characters that break CSS quoted strings', () => {
+    // \n in a JS string literal is a real newline byte (U+000A).
+    // escapeCssUrl must replace it with the CSS hex escape \A  (backslash + A + space)
+    // so it cannot break out of the url("...") context in a stylesheet.
+    // \\A in the expected JS string literal represents the three characters: \ A <space>
+    expect(escapeCssUrl('http://x.com/img\n.jpg')).toBe('http://x.com/img\\A .jpg');
+
+    // Same as above for carriage return (U+000D) → CSS hex escape \D
+    expect(escapeCssUrl('http://x.com/img\r.jpg')).toBe('http://x.com/img\\D .jpg');
+
+    // Same as above for form feed (U+000C) → CSS hex escape \C
+    expect(escapeCssUrl('http://x.com/img\f.jpg')).toBe('http://x.com/img\\C .jpg');
+
+    // Null bytes (U+0000) are invalid in CSS strings and must be escaped.
+    // \0 in a JS string literal is a real null byte;
+    // \\0 in the expected string is the two characters: \ 0 (plus a trailing space
+    // to terminate the CSS hex sequence, preventing the next character being
+    // consumed as part of the escape).
+    expect(escapeCssUrl('http://x.com/img\0.jpg')).toBe('http://x.com/img\\0 .jpg');
+
+    // A literal " would close the url("...") wrapper early — must be escaped to \"
+    // \\" in the expected JS string literal is the two characters: \ "
+    expect(escapeCssUrl('http://x.com/img".jpg')).toBe('http://x.com/img\\".jpg');
+
+    // A literal \ in the URL must be doubled to \\ so it is not interpreted
+    // as the start of a CSS escape sequence.
+    // \\\\ in the expected JS string literal is two characters: \ \
+    expect(escapeCssUrl('http://x.com/img\\.jpg')).toBe('http://x.com/img\\\\.jpg');
+  });
+
+  it('does not double-escape backslashes', () => {
+    // Verifies that the \ replacement runs first in escapeCssUrl, so that
+    // the \ characters inserted by later replacements are not escaped again.
+    // Input 'a\\b' is the three characters: a \ b
+    // Expected 'a\\\\b' is the four characters: a \ \ b
+    expect(escapeCssUrl('a\\b')).toBe('a\\\\b');
   });
 });
 

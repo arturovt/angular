@@ -46,3 +46,19 @@ export function normalizePath(path: string): string {
 export function normalizeSrc(src: string): string {
   return src.startsWith('/') ? src.slice(1) : src;
 }
+
+export function escapeCssUrl(input: string): string {
+  return (
+    input
+      // Backslash must be first, otherwise it would double-escape later replacements
+      .replace(/\\/g, '\\\\')
+      // Characters that terminate a CSS quoted string per the CSS spec:
+      // https://www.w3.org/TR/css-syntax-3/#consume-string-token
+      .replace(/\n/g, '\\A ') // U+000A LINE FEED
+      .replace(/\r/g, '\\D ') // U+000D CARRIAGE RETURN
+      .replace(/\f/g, '\\C ') // U+000C FORM FEED
+      .replace(/\0/g, '\\0 ') // U+0000 NULL
+      // Double quote closes the url("...") wrapper
+      .replace(/"/g, '\\"')
+  );
+}

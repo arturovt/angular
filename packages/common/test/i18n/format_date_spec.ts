@@ -532,5 +532,23 @@ describe('Format date', () => {
       // Jan 01st is a Monday
       expect(getThursdayThisIsoWeek(new Date(2024, 0, 1))).toEqual(new Date(2024, 0, 4));
     });
+
+    it('should throw for a format string longer than 100 characters', () => {
+      const date = new Date(2015, 5, 15, 9, 3, 1);
+      expect(() => formatDate(date, 'x'.repeat(200), ɵDEFAULT_LOCALE_ID)).toThrowError();
+    });
+
+    it('should throw for a format string that causes excessive parsing iterations', () => {
+      const date = new Date(2015, 5, 15, 9, 3, 1);
+      // 'yy ' repeated 60 times = 180 chars; drives the while-loop through many iterations
+      expect(() => formatDate(date, 'yy '.repeat(60), ɵDEFAULT_LOCALE_ID)).toThrowError();
+    });
+
+    it('should format yyyy-MM-dd HH:mm:ss correctly after loop guards are in place', () => {
+      const date = new Date(2015, 5, 15, 9, 3, 1);
+      expect(formatDate(date, 'yyyy-MM-dd HH:mm:ss', ɵDEFAULT_LOCALE_ID)).toEqual(
+        '2015-06-15 09:03:01',
+      );
+    });
   });
 });

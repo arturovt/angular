@@ -9,6 +9,8 @@ export const enum RuntimeErrorCode {
     // (undocumented)
     EQUALITY_NG_SWITCH_DIFFERENCE = 2001,
     // (undocumented)
+    INVALID_DATE_FORMAT = 2312,
+    // (undocumented)
     INVALID_DIGIT_INFO = 2306,
     // (undocumented)
     INVALID_INPUT = 2952,

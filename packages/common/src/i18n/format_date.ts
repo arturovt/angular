@@ -92,9 +92,26 @@ export function formatDate(
   const namedFormat = getNamedFormat(locale, format);
   format = namedFormat || format;
 
+  if (format.length > 100) {
+    throw new RuntimeError(
+      RuntimeErrorCode.INVALID_DATE_FORMAT,
+      ngDevMode &&
+        `Date format string "${format}" exceeds the maximum supported length of 100 characters.`,
+    );
+  }
+
   let parts: string[] = [];
   let match;
+  let iterationCount = 0;
   while (format) {
+    if (++iterationCount > 50) {
+      throw new RuntimeError(
+        RuntimeErrorCode.INVALID_DATE_FORMAT,
+        ngDevMode &&
+          `Date format string exceeded the maximum of 50 parsing iterations. ` +
+            `Simplify the format string to avoid this error.`,
+      );
+    }
     match = DATE_FORMATS_SPLIT.exec(format);
     if (match) {
       parts = parts.concat(match.slice(1));

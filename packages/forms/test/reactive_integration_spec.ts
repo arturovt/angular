@@ -190,6 +190,29 @@ describe('reactive forms integration tests', () => {
       expect(control.value).toEqual('updated value');
     });
 
+    it('should sync all views bound to the same control when one view changes', () => {
+      TestBed.overrideComponent(FormControlComp, {
+        set: {
+          template: `
+            <input type="text" [formControl]="control">
+            <input type="text" [formControl]="control">
+          `,
+        },
+      });
+      const fixture = initTest(FormControlComp);
+      const control = new FormControl('old value');
+      fixture.componentInstance.control = control;
+      fixture.detectChanges();
+
+      const inputs = fixture.debugElement.queryAll(By.css('input'));
+      inputs[0].nativeElement.value = 'updated value';
+      dispatchEvent(inputs[0].nativeElement, 'input');
+      fixture.detectChanges();
+
+      expect(control.value).toEqual('updated value');
+      expect(inputs[1].nativeElement.value).toEqual('updated value');
+    });
+
     it('should work with formGroups (model -> view)', () => {
       const fixture = initTest(FormGroupComp);
       fixture.componentInstance.form = new FormGroup({'login': new FormControl('loginValue')});

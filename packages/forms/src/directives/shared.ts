@@ -100,10 +100,10 @@ export function setUpControlValueAccessor(
     dir.valueAccessor!.setDisabledState?.(control.disabled);
   }
 
-  setUpViewChangePipeline(control, dir);
-  setUpModelChangePipeline(control, dir);
+  const onModelChange = setUpModelChangePipeline(control, dir);
+  setUpViewChangePipeline(control, dir, onModelChange);
 
-  setUpBlurPipeline(control, dir);
+  setUpBlurPipeline(control, dir, onModelChange);
 
   setUpDisabledChangeHandler(control, dir);
 }
@@ -263,33 +263,45 @@ export function cleanUpValidators(
   return isControlUpdated;
 }
 
-function setUpViewChangePipeline(control: FormControl, dir: NgControl): void {
+function setUpViewChangePipeline(
+  control: FormControl,
+  dir: NgControl,
+  onModelChange: Function,
+): void {
   dir.valueAccessor!.registerOnChange((newValue: any) => {
     control._pendingValue = newValue;
     control._pendingChange = true;
     control._pendingDirty = true;
 
-    if (control.updateOn === 'change') updateControl(control, dir);
+    if (control.updateOn === 'change') updateControl(control, dir, onModelChange);
   });
 }
 
-function setUpBlurPipeline(control: FormControl, dir: NgControl): void {
+function setUpBlurPipeline(control: FormControl, dir: NgControl, onModelChange: Function): void {
   dir.valueAccessor!.registerOnTouched(() => {
     control._pendingTouched = true;
 
-    if (control.updateOn === 'blur' && control._pendingChange) updateControl(control, dir);
+    if (control.updateOn === 'blur' && control._pendingChange)
+      updateControl(control, dir, onModelChange);
     if (control.updateOn !== 'submit') control.markAsTouched();
   });
 }
 
-function updateControl(control: FormControl, dir: NgControl): void {
+function updateControl(control: FormControl, dir: NgControl, onModelChange: Function): void {
   if (control._pendingDirty) control.markAsDirty();
+  // `emitModelToViewChange: false` skips writing the value back to the view that originated
+  // this change (it's already up to date, and rewriting it can reset caret position). Other
+  // views bound to the same control (e.g. a second `[formControl]` pointing at this instance)
+  // still need to be synced, so notify every other registered callback directly.
   control.setValue(control._pendingValue, {emitModelToViewChange: false});
+  control._onChange.forEach((changeFn) => {
+    if (changeFn !== onModelChange) changeFn(control.value, false);
+  });
   dir.viewToModelUpdate(control._pendingValue);
   control._pendingChange = false;
 }
 
-function setUpModelChangePipeline(control: FormControl, dir: NgControl): void {
+function setUpModelChangePipeline(control: FormControl, dir: NgControl): Function {
   const onChange = (newValue?: any, emitModelEvent?: boolean) => {
     // control -> view
     dir.valueAccessor!.writeValue(newValue);
@@ -304,6 +316,8 @@ function setUpModelChangePipeline(control: FormControl, dir: NgControl): void {
   dir._registerOnDestroy(() => {
     control._unregisterOnChange(onChange);
   });
+
+  return onChange;
 }
 
 /**

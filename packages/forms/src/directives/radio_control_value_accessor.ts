@@ -94,9 +94,17 @@ export class RadioControlRegistry {
     accessor: RadioControlValueAccessor,
   ): boolean {
     if (!controlPair[0].control) return false;
-    return (
-      controlPair[0]._parent === accessor._control._parent && controlPair[1].name === accessor.name
-    );
+    if (controlPair[0]._parent !== accessor._control._parent) return false;
+
+    // When a `name` is set (directly, or copied from `formControlName`), group by it like the
+    // browser does.
+    if (controlPair[1].name || accessor.name) {
+      return controlPair[1].name === accessor.name;
+    }
+
+    // With no `name`, group by the bound control. Otherwise two separate `[formControl]` radios
+    // with the same parent are treated as one group and end up toggling each other. See #45719.
+    return controlPair[0].control === accessor._control.control;
   }
 }
 

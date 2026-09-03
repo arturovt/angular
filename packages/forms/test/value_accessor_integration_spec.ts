@@ -825,6 +825,60 @@ describe('value accessors', () => {
         expect(inputs[3].nativeElement.checked).toEqual(true);
       });
 
+      it('should not share a group between two nameless [formControl] radios', () => {
+        TestBed.overrideComponent(FormControlRadioButtons, {
+          set: {
+            template: `
+              <input type="radio" [formControl]="form.get('a')" value="chicken">
+              <input type="radio" [formControl]="form.get('a')" value="fish">
+              <input type="radio" [formControl]="form.get('b')" value="chicken">
+              <input type="radio" [formControl]="form.get('b')" value="fish">
+            `,
+          },
+        });
+        const fixture = initTest(FormControlRadioButtons);
+        const form = new FormGroup({
+          a: new FormControl('chicken'),
+          b: new FormControl('chicken'),
+        });
+        fixture.componentInstance.form = form;
+        fixture.detectChanges();
+
+        const inputs = fixture.debugElement.queryAll(By.css('input'));
+        expect(inputs[0].nativeElement.checked).toEqual(true);
+        expect(inputs[2].nativeElement.checked).toEqual(true);
+
+        // Picking a value in the first group must leave the second group untouched, in the model
+        // and in the view.
+        dispatchEvent(inputs[1].nativeElement, 'change');
+        fixture.detectChanges();
+
+        expect(form.get('a')!.value).toEqual('fish');
+        expect(form.get('b')!.value).toEqual('chicken');
+        expect(inputs[0].nativeElement.checked).toEqual(false);
+        expect(inputs[2].nativeElement.checked).toEqual(true);
+        expect(inputs[3].nativeElement.checked).toEqual(false);
+      });
+
+      it('should keep coordinating two radios bound to the same nameless [formControl]', () => {
+        const fixture = initTest(FormControlRadioButtons);
+        const form = new FormGroup({food: new FormControl('fish'), drink: new FormControl('cola')});
+        fixture.componentInstance.form = form;
+        fixture.detectChanges();
+
+        // `showRadio` drives the last two inputs, both without a `name`.
+        const inputs = fixture.debugElement.queryAll(By.css('input'));
+        const yes = inputs[inputs.length - 2].nativeElement;
+        const no = inputs[inputs.length - 1].nativeElement;
+        expect(yes.checked).toEqual(true);
+
+        dispatchEvent(no, 'change');
+        fixture.detectChanges();
+
+        expect(fixture.componentInstance.showRadio.value).toEqual('no');
+        expect(yes.checked).toEqual(false);
+      });
+
       it('should disable all radio buttons when disable() is called', () => {
         const fixture = initTest(FormControlRadioButtons);
         const form = new FormGroup({food: new FormControl('fish'), drink: new FormControl('cola')});

@@ -6382,9 +6382,11 @@ describe('platform-server full application hydration integration', () => {
           } catch (e: unknown) {
             const error = e as Error;
             // This is the fixed behavior: a coded NG0502 RuntimeError, not a raw
-            // TypeError.
+            // TypeError. The message names the enclosing host element (`<app>`) alongside
+            // the missing element, since hydration mismatches are hard enough to debug that
+            // this context is kept even in production builds.
             expect(error instanceof TypeError).toBe(false);
-            expect(error.message).toBe('NG0502: <i>');
+            expect(error.message).toBe('NG0502: <app> > <i>');
             expect(error.message).not.toContain("reading 'nodeType'");
           } finally {
             (globalThis as any).ngDevMode = previousNgDevMode;

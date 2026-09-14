@@ -34,8 +34,10 @@ import {hasClassInput, hasStyleInput, TElementNode, TNode, TNodeType} from '../i
 import {RElement} from '../interfaces/renderer_dom';
 import {isComponentHost, isDirectiveHost} from '../interfaces/type_checks';
 import {
+  DECLARATION_COMPONENT_VIEW,
   ENVIRONMENT,
   HEADER_OFFSET,
+  HOST,
   HYDRATION,
   LView,
   RENDERER,
@@ -366,11 +368,20 @@ function locateOrCreateElementNodeImpl(
     // only. Guard against it here so production throws a coded RuntimeError instead of a raw
     // TypeError when dereferencing `native` below.
     if (native == null) {
+      // Embedded views don't have their own host, so use the declaring component's host.
+      const host = lView[HOST] ?? lView[DECLARATION_COMPONENT_VIEW]?.[HOST];
       throw new RuntimeError(
         RuntimeErrorCode.HYDRATION_MISSING_NODE,
+        // Keep useful context in production because tNode indexes are hard to debug.
+        //
+        // Keep the strings inline so they can be tree-shaken from production builds.
         ngDevMode
-          ? `During hydration Angular expected a "<${name}>" element at this location (tNode #${tNode.index}), but no matching DOM node was found. This usually means the client-rendered DOM no longer matches the server-rendered HTML.`
-          : `<${name}>`,
+          ? host
+            ? `During hydration Angular expected a "<${name}>" element inside <${host.tagName.toLowerCase()}>, but no matching DOM node was found. This usually means the client-rendered DOM no longer matches the server-rendered HTML.`
+            : `During hydration Angular expected a "<${name}>" element at this location (tNode #${tNode.index}), but no matching DOM node was found. This usually means the client-rendered DOM no longer matches the server-rendered HTML.`
+          : host
+            ? `<${host.tagName.toLowerCase()}> > <${name}>`
+            : `<${name}>`,
       );
     }
 

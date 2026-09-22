@@ -23,7 +23,11 @@ import {
 import {BrowserModule, platformBrowser} from '@angular/platform-browser';
 import {Subject} from 'rxjs';
 
-import {createCustomElement, NgElementConstructor} from '../src/create-custom-element';
+import {
+  createCustomElement,
+  NgElementConfig,
+  NgElementConstructor,
+} from '../src/create-custom-element';
 import {
   NgElementStrategy,
   NgElementStrategyEvent,
@@ -125,6 +129,35 @@ describe('createCustomElement', () => {
     strategy.events.next({name: 'some-event', value: 'event-value'});
 
     expect(eventValue).toEqual('event-value');
+  });
+
+  it('should dispatch non-bubbling, non-composed events by default', () => {
+    const element = new NgElementCtor(injector);
+    element.connectedCallback();
+
+    let dispatchedEvent: CustomEvent | null = null;
+    element.addEventListener('some-event', (e: Event) => (dispatchedEvent = e as CustomEvent));
+    strategy.events.next({name: 'some-event', value: 'event-value'});
+
+    expect(dispatchedEvent!.bubbles).toBe(false);
+    expect(dispatchedEvent!.composed).toBe(false);
+  });
+
+  it('should dispatch bubbling, composed events when `bubbleEvents` is set', () => {
+    const {selector, ElementCtor} = createTestCustomElement(strategyFactory, {bubbleEvents: true});
+    customElements.define(selector, ElementCtor);
+
+    const element = new ElementCtor(injector);
+    testContainer.appendChild(element);
+
+    let eventValueOnParent: any = null;
+    testContainer.addEventListener(
+      'some-event',
+      (e: Event) => (eventValueOnParent = (e as CustomEvent).detail),
+    );
+    strategy.events.next({name: 'some-event', value: 'event-value'});
+
+    expect(eventValueOnParent).toEqual('event-value');
   });
 
   it('should not listen to output events after disconnected', () => {
@@ -351,10 +384,17 @@ describe('createCustomElement', () => {
     return ElementCtor;
   }
 
-  function createTestCustomElement(strategyFactory: NgElementStrategyFactory) {
+  function createTestCustomElement(
+    strategyFactory: NgElementStrategyFactory,
+    configOverrides?: Partial<NgElementConfig>,
+  ) {
     return {
       selector: `test-element-${++selectorUid}`,
-      ElementCtor: createCustomElement<WithFooBar>(TestComponent, {injector, strategyFactory}),
+      ElementCtor: createCustomElement<WithFooBar>(TestComponent, {
+        injector,
+        strategyFactory,
+        ...configOverrides,
+      }),
     };
   }
 

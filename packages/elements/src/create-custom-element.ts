@@ -105,6 +105,11 @@ export interface NgElementConfig {
    * The strategy controls how the transformation is performed.
    */
   strategyFactory?: NgElementStrategyFactory;
+  /**
+   * Whether output events bubble and cross shadow DOM boundaries (`bubbles` and `composed`).
+   * Defaults to `false`.
+   */
+  bubbleEvents?: boolean;
 }
 
 /**
@@ -230,7 +235,8 @@ export function createCustomElement<P>(
     private subscribeToEvents(): void {
       // Listen for events from the strategy and dispatch them as custom events.
       this.ngElementEventsSubscription = this.ngElementStrategy.events.subscribe((e) => {
-        const customEvent = new CustomEvent(e.name, {detail: e.value});
+        const bubbles = !!config.bubbleEvents;
+        const customEvent = new CustomEvent(e.name, {detail: e.value, bubbles, composed: bubbles});
         this.dispatchEvent(customEvent);
       });
     }

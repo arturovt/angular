@@ -214,7 +214,9 @@ export abstract class FieldNodeStructure {
 
   /** Destroys the field when it is no longer needed. */
   destroy(): void {
-    this.injector.destroy();
+    // Use the private field, since there is nothing to destroy for a field whose injector was
+    // never created.
+    this._injector?.destroy();
   }
 
   /**

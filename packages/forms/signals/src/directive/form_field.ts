@@ -233,7 +233,10 @@ export class FormField<T> {
    */
   get controlValueAccessor(): ControlValueAccessor | undefined {
     if (!this.controlValueAccessors || this.controlValueAccessors.length === 0) {
-      return this.interopNgControl?.valueAccessor ?? undefined;
+      // Read the private field rather than the getter, so that we don't instantiate an
+      // `InteropNgControl` for every control that has no value accessor. A control that uses the
+      // `inject(NgControl).valueAccessor = this` pattern has already instantiated it by now.
+      return this._interopNgControl?.valueAccessor ?? undefined;
     }
 
     // Rely on the exact logic in `@angular/forms` to pick the accessors with correct priority,

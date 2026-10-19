@@ -6,7 +6,14 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Injector, signal} from '@angular/core';
+import {
+  ApplicationRef,
+  DestroyRef,
+  inject,
+  Injector,
+  runInInjectionContext,
+  signal,
+} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 import {apply, applyEach, form, required, schema} from '@angular/forms/signals';
 
@@ -128,6 +135,49 @@ describe('structure APIs', () => {
       // Because 'a.b' has rules, 'a' and 'b' must be materialized up the tree
       expect((f() as any).structure._areChildrenMaterialized()).toBeTrue();
       expect((f.a() as any).structure._areChildrenMaterialized()).toBeTrue();
+    });
+  });
+
+  describe('field cleanup', () => {
+    function arrayForm() {
+      const data = signal([{a: 1}, {a: 2}]);
+      const f = form(
+        data,
+        (p) => {
+          applyEach(p, (el) => {
+            required(el.a);
+          });
+        },
+        {injector: TestBed.inject(Injector)},
+      );
+      return {data, f};
+    }
+
+    it('should not create an injector for an orphaned field that never had one', () => {
+      const {data, f} = arrayForm();
+      const structure = (f[1]() as any).structure;
+      expect(structure._injector).toBeUndefined();
+
+      data.set([{a: 1}]);
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(structure.isOrphaned()).toBeTrue();
+      expect(structure._injector).toBeUndefined();
+    });
+
+    it('should destroy the injector of an orphaned field that has one', () => {
+      const {data, f} = arrayForm();
+      const structure = (f[1]() as any).structure;
+
+      let destroyed = false;
+      runInInjectionContext(structure.injector, () => {
+        inject(DestroyRef).onDestroy(() => (destroyed = true));
+      });
+
+      data.set([{a: 1}]);
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(destroyed).toBeTrue();
     });
   });
 });

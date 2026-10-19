@@ -460,6 +460,21 @@ describe('ControlValueAccessor', () => {
     expect(fixture.componentInstance.f().value()).toBe('typing');
   });
 
+  it('should not create an interop NgControl for a control with no value accessor', () => {
+    @Component({
+      imports: [FormField],
+      template: `<input [formField]="f" />`,
+    })
+    class TestCmp {
+      readonly f = form(signal('test'));
+      readonly formField = viewChild.required(FormField);
+    }
+
+    const fixture = act(() => TestBed.createComponent(TestCmp));
+
+    expect((fixture.componentInstance.formField() as any)._interopNgControl).toBeUndefined();
+  });
+
   it('should not throw if the ControlValueAccessor implementation uses signals', async () => {
     @Component({
       selector: 'signal-custom-control',

@@ -15,7 +15,6 @@ import {ViewEncapsulation} from '../../metadata/view';
 import {unwrapSafeValue} from '../../sanitization/bypass';
 import {validateAgainstEventProperties} from '../../sanitization/sanitization';
 
-import {ProfilerEvent} from '../../../primitives/devtools';
 import {normalizeDebugBindingName, normalizeDebugBindingValue} from '../../ng_reflect';
 import {assertIndexInRange, assertNotSame} from '../../util/assert';
 import {escapeCommentText} from '../../util/dom';
@@ -56,7 +55,7 @@ import {
 } from '../interfaces/view';
 import {assertTNodeType} from '../node_assert';
 import {isNodeMatchingSelectorList} from '../node_selector_matcher';
-import {profiler} from '../profiler';
+import {profiler, ProfilerEvent} from '../profiler';
 import {
   getCurrentDirectiveIndex,
   getCurrentTNode,

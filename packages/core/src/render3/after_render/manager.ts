@@ -17,8 +17,7 @@ import {ErrorHandler} from '../../error_handler';
 import {type DestroyRef} from '../../linker/destroy_ref';
 import {NgZone} from '../../zone';
 import {AFTER_RENDER_SEQUENCES_TO_ADD, FLAGS, LView, LViewFlags} from '../interfaces/view';
-import {profiler} from '../profiler';
-import {ProfilerEvent} from '../../../primitives/devtools';
+import {profiler, ProfilerEvent} from '../profiler';
 import {markAncestorsForTraversal} from '../util/view_utils';
 import {AfterRenderPhase, AfterRenderRef} from './api';
 

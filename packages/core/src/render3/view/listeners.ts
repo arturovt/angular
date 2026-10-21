@@ -19,8 +19,7 @@ import {
   getOrCreateTViewCleanup,
   unwrapRNode,
 } from '../util/view_utils';
-import {profiler} from '../profiler';
-import {ProfilerEvent} from '../../../primitives/devtools';
+import {profiler, ProfilerEvent} from '../profiler';
 import {markViewDirty} from '../instructions/mark_view_dirty';
 import type {RElement} from '../interfaces/renderer_dom';
 import type {GlobalTargetResolver, Renderer} from '../interfaces/renderer';

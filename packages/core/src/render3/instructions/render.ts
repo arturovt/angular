@@ -21,8 +21,7 @@ import {
   TVIEW,
   TView,
 } from '../interfaces/view';
-import {profiler} from '../profiler';
-import {ProfilerEvent} from '../../../primitives/devtools';
+import {profiler, ProfilerEvent} from '../profiler';
 import {executeViewQueryFn, refreshContentQueries} from '../queries/query_execution';
 import {enterView, leaveView} from '../state';
 import {getComponentLViewByIndex, isCreationMode} from '../util/view_utils';

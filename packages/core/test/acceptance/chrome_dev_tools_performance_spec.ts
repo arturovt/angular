@@ -11,8 +11,7 @@ import {
   enableProfiling,
   getComponentInstanceDeepLinkId,
 } from '../../src/render3/debug/chrome_dev_tools_performance';
-import {profiler} from '../../src/render3/profiler';
-import {ProfilerEvent} from '../../primitives/devtools';
+import {profiler, ProfilerEvent} from '../../src/render3/profiler';
 import {TestBed} from '../../testing';
 
 /**

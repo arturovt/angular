@@ -20,7 +20,6 @@ import {
 } from '../change_detection/lifecycle_hooks';
 import {assertDefined, assertEqual, assertNotEqual} from '../util/assert';
 
-import {ProfilerEvent} from '../../primitives/devtools';
 import {assertFirstCreatePass} from './assert';
 import {getNgOnChangesFeatureImpl} from './features/ng_onchanges_feature';
 import {DirectiveDef} from './interfaces/definition';
@@ -35,7 +34,7 @@ import {
   PreOrderHookFlags,
   TView,
 } from './interfaces/view';
-import {profiler} from './profiler';
+import {profiler, ProfilerEvent} from './profiler';
 import {isInCheckNoChangesMode} from './state';
 
 /**

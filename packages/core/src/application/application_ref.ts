@@ -18,7 +18,6 @@ import {
   setThrowInvalidWriteToSignalError,
 } from '../../primitives/signals';
 
-import {ProfilerEvent} from '../../primitives/devtools';
 import {ZONELESS_ENABLED} from '../change_detection/scheduling/zoneless_scheduling';
 import {Console} from '../console';
 import {inject, Service} from '../di';
@@ -39,7 +38,7 @@ import {getComponentDef, isStandalone} from '../render3/def_getters';
 import type {Binding, DirectiveWithBindings} from '../render3/dynamic_bindings';
 import {ChangeDetectionMode, detectChangesInternal} from '../render3/instructions/change_detection';
 import {getDeclarationComponentDef} from '../render3/instructions/element_validation';
-import {profiler} from '../render3/profiler';
+import {profiler, ProfilerEvent} from '../render3/profiler';
 import {isReactiveLViewConsumer} from '../render3/reactive_lview_consumer';
 import {EffectScheduler} from '../render3/reactivity/root_effect_scheduler';
 import {publishDefaultGlobalUtils as _publishDefaultGlobalUtils} from '../render3/util/global_utils';

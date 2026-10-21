@@ -16,7 +16,6 @@ import {
   setActiveConsumer,
 } from '../../../primitives/signals';
 
-import {ProfilerEvent} from '../../../primitives/devtools';
 import {encapsulateBoundaryError, ErrorDetails} from '../../error_handler';
 import {RuntimeError, RuntimeErrorCode} from '../../errors';
 import {Type} from '../../interface/type';
@@ -46,7 +45,7 @@ import {
   TVIEW,
   TView,
 } from '../interfaces/view';
-import {profiler} from '../profiler';
+import {profiler, ProfilerEvent} from '../profiler';
 import {executeViewQueryFn, refreshContentQueries} from '../queries/query_execution';
 import {
   getOrBorrowReactiveLViewConsumer,

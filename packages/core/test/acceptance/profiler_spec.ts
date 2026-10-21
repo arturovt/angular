@@ -7,7 +7,11 @@
  */
 
 import {ProfilerEvent} from '../../primitives/devtools';
-import {profiler, setProfiler} from '../../src/render3/profiler';
+import {
+  profiler,
+  ProfilerEvent as InternalProfilerEvent,
+  setProfiler,
+} from '../../src/render3/profiler';
 import {TestBed} from '../../testing';
 
 import {
@@ -676,15 +680,15 @@ describe('profiler activation and removal', () => {
     const r1 = setProfiler((e) => events.push('P1: ' + e));
     const r2 = setProfiler((e) => events.push('P2: ' + e));
 
-    profiler(ProfilerEvent.TemplateCreateStart);
+    profiler(InternalProfilerEvent.TemplateCreateStart);
     expect(events).toEqual(['P1: 0', 'P2: 0']);
 
     r1();
-    profiler(ProfilerEvent.TemplateCreateEnd);
+    profiler(InternalProfilerEvent.TemplateCreateEnd);
     expect(events).toEqual(['P1: 0', 'P2: 0', 'P2: 1']);
 
     r2();
-    profiler(ProfilerEvent.TemplateCreateStart);
+    profiler(InternalProfilerEvent.TemplateCreateStart);
     expect(events).toEqual(['P1: 0', 'P2: 0', 'P2: 1']);
   });
 
@@ -694,11 +698,11 @@ describe('profiler activation and removal', () => {
     const r1 = setProfiler(p1);
     const r2 = setProfiler(p1);
 
-    profiler(ProfilerEvent.TemplateCreateStart);
+    profiler(InternalProfilerEvent.TemplateCreateStart);
     expect(events).toEqual(['P1: 0']);
 
     r1();
-    profiler(ProfilerEvent.TemplateCreateStart);
+    profiler(InternalProfilerEvent.TemplateCreateStart);
     expect(events).toEqual(['P1: 0']);
 
     // subsequent removals should be noop
@@ -711,12 +715,58 @@ describe('profiler activation and removal', () => {
     setProfiler((e) => events.push('P1: ' + e));
     setProfiler((e) => events.push('P2: ' + e));
 
-    profiler(ProfilerEvent.TemplateCreateStart);
+    profiler(InternalProfilerEvent.TemplateCreateStart);
     expect(events).toEqual(['P1: 0', 'P2: 0']);
 
     // clear all profilers
     setProfiler(null);
-    profiler(ProfilerEvent.TemplateCreateEnd);
+    profiler(InternalProfilerEvent.TemplateCreateEnd);
     expect(events).toEqual(['P1: 0', 'P2: 0']);
+  });
+});
+
+describe('ProfilerEvent', () => {
+  // The intersection fails to compile when a member is added to only one of the two enums.
+  type EventValues = Record<keyof typeof ProfilerEvent, number> &
+    Record<keyof typeof InternalProfilerEvent, number>;
+
+  it('should have the same values as the const enum used by the framework', () => {
+    const internalValues: EventValues = {
+      TemplateCreateStart: InternalProfilerEvent.TemplateCreateStart,
+      TemplateCreateEnd: InternalProfilerEvent.TemplateCreateEnd,
+      TemplateUpdateStart: InternalProfilerEvent.TemplateUpdateStart,
+      TemplateUpdateEnd: InternalProfilerEvent.TemplateUpdateEnd,
+      LifecycleHookStart: InternalProfilerEvent.LifecycleHookStart,
+      LifecycleHookEnd: InternalProfilerEvent.LifecycleHookEnd,
+      OutputStart: InternalProfilerEvent.OutputStart,
+      OutputEnd: InternalProfilerEvent.OutputEnd,
+      BootstrapApplicationStart: InternalProfilerEvent.BootstrapApplicationStart,
+      BootstrapApplicationEnd: InternalProfilerEvent.BootstrapApplicationEnd,
+      BootstrapComponentStart: InternalProfilerEvent.BootstrapComponentStart,
+      BootstrapComponentEnd: InternalProfilerEvent.BootstrapComponentEnd,
+      ChangeDetectionStart: InternalProfilerEvent.ChangeDetectionStart,
+      ChangeDetectionEnd: InternalProfilerEvent.ChangeDetectionEnd,
+      ChangeDetectionSyncStart: InternalProfilerEvent.ChangeDetectionSyncStart,
+      ChangeDetectionSyncEnd: InternalProfilerEvent.ChangeDetectionSyncEnd,
+      AfterRenderHooksStart: InternalProfilerEvent.AfterRenderHooksStart,
+      AfterRenderHooksEnd: InternalProfilerEvent.AfterRenderHooksEnd,
+      ComponentStart: InternalProfilerEvent.ComponentStart,
+      ComponentEnd: InternalProfilerEvent.ComponentEnd,
+      DeferBlockStateStart: InternalProfilerEvent.DeferBlockStateStart,
+      DeferBlockStateEnd: InternalProfilerEvent.DeferBlockStateEnd,
+      DynamicComponentStart: InternalProfilerEvent.DynamicComponentStart,
+      DynamicComponentEnd: InternalProfilerEvent.DynamicComponentEnd,
+      HostBindingsUpdateStart: InternalProfilerEvent.HostBindingsUpdateStart,
+      HostBindingsUpdateEnd: InternalProfilerEvent.HostBindingsUpdateEnd,
+    };
+
+    const mismatching: string[] = [];
+    for (const name of Object.keys(internalValues) as (keyof typeof ProfilerEvent)[]) {
+      if (internalValues[name] !== ProfilerEvent[name]) {
+        mismatching.push(name);
+      }
+    }
+
+    expect(mismatching).toEqual([]);
   });
 });

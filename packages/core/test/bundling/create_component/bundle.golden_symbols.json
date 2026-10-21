@@ -151,7 +151,6 @@
       "PRESERVE_HOST_CONTENT",
       "PRESERVE_HOST_CONTENT_DEFAULT",
       "PendingTasksInternal",
-      "ProfilerEvent",
       "QUERIES",
       "R3Injector",
       "R3ViewContainerRef",

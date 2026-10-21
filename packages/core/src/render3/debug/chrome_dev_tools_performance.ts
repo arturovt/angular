@@ -10,8 +10,8 @@ import {isTypeProvider} from '../../di/provider_collection';
 import {assertDefined} from '../../util/assert';
 import {performanceMarkFeature} from '../../util/performance';
 import {VERSION} from '../../version';
-import {setProfiler} from '../profiler';
-import {Profiler, ProfilerEvent} from '../../../primitives/devtools';
+import {ProfilerEvent, setProfiler} from '../profiler';
+import {type Profiler} from '../../../primitives/devtools';
 import {stringifyForError} from '../util/stringify_utils';
 import {
   InjectorProfiler,
@@ -238,11 +238,9 @@ const chromeDevToolsInjectorProfiler: InjectorProfiler = (event: InjectorProfile
   }
 };
 
-const devToolsProfiler: Profiler = (
-  event: ProfilerEvent,
-  instance?: {} | null,
-  eventFn?: Function,
-) => {
+// `event` is a plain `number`, so that the `switch` below can compare it against the internal
+// `ProfilerEvent` const enum.
+const devToolsProfiler: Profiler = (event: number, instance?: {} | null, eventFn?: Function) => {
   switch (event) {
     case ProfilerEvent.BootstrapApplicationStart:
     case ProfilerEvent.BootstrapComponentStart:

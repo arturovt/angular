@@ -86,8 +86,7 @@ import {
   ID,
 } from './interfaces/view';
 import {assertTNodeType} from './node_assert';
-import {profiler} from './profiler';
-import {ProfilerEvent} from '../../primitives/devtools';
+import {profiler, ProfilerEvent} from './profiler';
 import {getLViewParent, getNativeByTNode, unwrapRNode} from './util/view_utils';
 import {cancelLeavingNodes, reusedNodes, trackLeavingNodes} from '../animation/utils';
 import {Injector} from '../di';

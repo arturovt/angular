@@ -58,7 +58,6 @@ import {
   TViewType,
 } from './interfaces/view';
 
-import {ProfilerEvent} from '../../primitives/devtools';
 import {TracingService} from '../application/tracing';
 import {DOCUMENT} from '../document';
 import {retrieveHydrationInfo} from '../hydration/utils';
@@ -75,7 +74,7 @@ import {
   extractAttrsAndClassesFromSelector,
   stringifyCSSSelectorList,
 } from './node_selector_matcher';
-import {profiler} from './profiler';
+import {profiler, ProfilerEvent} from './profiler';
 import {executeContentQueries} from './queries/query_execution';
 import {enterView, leaveView} from './state';
 import {debugStringifyTypeForError, stringifyForError} from './util/stringify_utils';

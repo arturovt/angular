@@ -8,7 +8,47 @@
 
 import {type Profiler} from '../../primitives/devtools';
 
-const profilerCallbacks: Profiler[] = [];
+/**
+ * Internal counterpart of the public `ProfilerEvent` enum, used by the framework itself.
+ *
+ * TypeScript inlines `const enum` members, so these calls compile down to plain numbers and
+ * applications no longer ship the runtime `ProfilerEvent` object, which only Angular DevTools
+ * reads. The members must stay identical to `ProfilerEvent`, which `profiler_spec.ts` asserts.
+ */
+export const enum ProfilerEvent {
+  TemplateCreateStart,
+  TemplateCreateEnd,
+  TemplateUpdateStart,
+  TemplateUpdateEnd,
+  LifecycleHookStart,
+  LifecycleHookEnd,
+  OutputStart,
+  OutputEnd,
+  BootstrapApplicationStart,
+  BootstrapApplicationEnd,
+  BootstrapComponentStart,
+  BootstrapComponentEnd,
+  ChangeDetectionStart,
+  ChangeDetectionEnd,
+  ChangeDetectionSyncStart,
+  ChangeDetectionSyncEnd,
+  AfterRenderHooksStart,
+  AfterRenderHooksEnd,
+  ComponentStart,
+  ComponentEnd,
+  DeferBlockStateStart,
+  DeferBlockStateEnd,
+  DynamicComponentStart,
+  DynamicComponentEnd,
+  HostBindingsUpdateStart,
+  HostBindingsUpdateEnd,
+}
+
+// Callbacks take a plain `number`, because the `const enum` above and the `ProfilerEvent` of the
+// public `Profiler` signature are two unrelated types for TypeScript.
+type ProfilerCallback = (event: number, instance?: {} | null, eventFn?: Function) => void;
+
+const profilerCallbacks: ProfilerCallback[] = [];
 
 const NOOP_PROFILER_REMOVAL = () => {};
 
@@ -52,7 +92,11 @@ export function setProfiler(profiler: Profiler | null): () => void {
  *    For example a template function, lifecycle hook, or output listener.
  *    The value depends on the execution context
  */
-export const profiler: Profiler = function (event, instance = null, eventFn): void {
+export const profiler = function (
+  event: ProfilerEvent,
+  instance: {} | null = null,
+  eventFn?: Function,
+): void {
   for (let i = 0; i < profilerCallbacks.length; i++) {
     const profilerCallback = profilerCallbacks[i];
     profilerCallback(event, instance, eventFn);

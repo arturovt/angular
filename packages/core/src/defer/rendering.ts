@@ -51,8 +51,7 @@ import {
   getTDeferBlockDetails,
   getTemplateIndexForState,
 } from './utils';
-import {profiler} from '../render3/profiler';
-import {ProfilerEvent} from '../../primitives/devtools';
+import {profiler, ProfilerEvent} from '../render3/profiler';
 import {addLViewToLContainer, removeLViewFromLContainer} from '../render3/view/container';
 
 /**
